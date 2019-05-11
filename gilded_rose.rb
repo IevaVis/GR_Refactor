@@ -5,6 +5,7 @@ class GildedRose
   BRIE = "Aged Brie"
   BACKSTAGE = "Backstage passes to a TAFKAL80ETC concert"
   SULFURAS = "Sulfuras, Hand of Ragnaros"
+  CONJURED = "Conjured"
 
   def initialize(items)
     @items = items
@@ -32,6 +33,10 @@ class GildedRose
         end
         update_item_quality(item, 1) if sell_in_expired?(item)
       when SULFURAS
+      when CONJURED
+        item.sell_in = item.sell_in - 1
+        quality = item.quality - 2
+        item.quality = quality if quality >= 0
       else
         update_item_quality(item, -1)
         update_item_quality(item, -1) if sell_in_expired?(item)
@@ -49,7 +54,4 @@ end
 def sell_in_expired?(item)
   item.sell_in < 0
 end
-
-
-
 

@@ -233,14 +233,15 @@ describe GildedRose do
             expect(item.quality).to eq 0
           end
         end
+
         context 'when item is Aged Brie' do
       it_behaves_like 'item sell value', item_name = 'Aged Brie'
-    end
+  
     context 'item quality' do
         context 'when sell in date not passed yet' do
           it 'increases by 1 the older it gets' do
             n = 5
-            item = Item.new('Aged Brie', sell_in = n, quality = 0)
+            item = Item.new('Aged Brie', n, 0)
             items = [item]
             gilded_rose = described_class.new(items)
 
@@ -255,7 +256,7 @@ describe GildedRose do
         context 'when sell in date has passed' do
           it 'increases twice as fast the older it gets' do
             n = 5
-            item = Item.new('Aged Brie', sell_in=0, quality=0)
+            item = Item.new('Aged Brie', 0, 0)
             items = [item]
             gilded_rose = described_class.new(items)
 
@@ -270,7 +271,7 @@ describe GildedRose do
 
         it 'is never more than 50' do
           n = 2
-          item = Item.new('Aged Brie', sell_in=n, quality=49)
+          item = Item.new('Aged Brie', n, 49)
           items = [item]
           gilded_rose = described_class.new(items)
 
@@ -278,6 +279,20 @@ describe GildedRose do
             gilded_rose.update_quality
           end
           expect(item.quality).to eq 50
+        end
+      end
+    end
+      context 'when item is Conjured' do
+
+        it_behaves_like 'quality value', item_name='Conjured'
+
+        it 'lowers quality value by 2 at the end of the day' do
+          item = Item.new('Conjured', 1, 2)
+          items = [item]
+          gilded_rose = described_class.new(items)
+          gilded_rose.update_quality
+
+          expect(item.quality).to eq 0
         end
       end
     end
