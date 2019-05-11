@@ -131,6 +131,7 @@ describe GildedRose do
     end
 
     context 'when item is Backstage passes to a TAFKAL80ETC concert' do 
+      it_behaves_like 'item sell value', item_name = 'Backstage passes to a TAFKAL80ETC concert'
       context 'Backstage quality' do
         it_behaves_like 'quality value', item_name='Backstage passes to a TAFKAL80ETC concert'
       end
@@ -269,9 +270,8 @@ describe GildedRose do
     end
 
     context 'when item is Conjured' do
-      
+      it_behaves_like 'item sell value', item_name = 'Conjured'
       it_behaves_like 'quality value', item_name='Conjured'
-
       it 'lowers quality value by 2 at the end of the day' do
           item = Item.new('Conjured', 1, 2)
           items = [item]

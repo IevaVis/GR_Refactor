@@ -13,55 +13,49 @@ class GildedRose
 
   def update_quality()
     @items.each do |item|
-      if item.name != SULFURAS
-        item.sell_in = item.sell_in - 1
-      end
+      decrease_sell_in_date_by_one(item) if item.name != SULFURAS
       case item.name
-
+      when SULFURAS
       when BACKSTAGE
-        update_item_quality(item, 1)
+        increase_item_quality(item)
         if item.sell_in < 10
-          update_item_quality(item, 1)
+          increase_item_quality(item)
         end
         if item.sell_in < 5
-          update_item_quality(item, 1)
+          increase_item_quality(item)
         end
-          update_item_quality(item, -item.quality) if sell_in_expired?(item)
-
+          decrease_item_quality(item, -item.quality) if sell_in_expired?(item)
       when BRIE
-        if item.quality < 50
-          item.quality = item.quality + 1
-        end
-        update_item_quality(item, 1) if sell_in_expired?(item)
-
-      when SULFURAS
-
+        increase_item_quality(item)
+        increase_item_quality(item) if sell_in_expired?(item)
       when CONJURED
-        item.sell_in = item.sell_in - 1
-        quality = item.quality - 2
-        item.quality = quality if quality >= 0
+        decrease_item_quality(item, -2)
       else
-        update_item_quality(item, -1)
-        update_item_quality(item, -1) if sell_in_expired?(item)
+        decrease_item_quality(item, -1)
+        decrease_item_quality(item, -1) if sell_in_expired?(item)
       end
     end
   end
 end
 
-def update_item_quality(item, quality_score)
-  if item.quality > 0 and item.quality < 50
+def decrease_item_quality(item, quality_score)
+  if item.quality > 0
     item.quality += quality_score
   end
 end
 
-def decrease_item_sell_in_date(item)
-  if item.name != SULFURAS
-    item.sell_in -= 1
+def increase_item_quality(item)
+  if item.quality < 50
+    item.quality += 1
   end
 end
 
 def sell_in_expired?(item)
   item.sell_in < 0
+end
+
+def decrease_sell_in_date_by_one(item)
+  item.sell_in = item.sell_in - 1
 end
 
 
