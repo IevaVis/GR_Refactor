@@ -16,8 +16,8 @@ class GildedRose
       if item.name != SULFURAS
         item.sell_in = item.sell_in - 1
       end
-
       case item.name
+
       when BACKSTAGE
         update_item_quality(item, 1)
         if item.sell_in < 10
@@ -27,12 +27,15 @@ class GildedRose
           update_item_quality(item, 1)
         end
           update_item_quality(item, -item.quality) if sell_in_expired?(item)
+
       when BRIE
         if item.quality < 50
           item.quality = item.quality + 1
         end
         update_item_quality(item, 1) if sell_in_expired?(item)
+
       when SULFURAS
+
       when CONJURED
         item.sell_in = item.sell_in - 1
         quality = item.quality - 2
@@ -46,12 +49,19 @@ class GildedRose
 end
 
 def update_item_quality(item, quality_score)
-  if item.quality < 50 and item.quality > 0
+  if item.quality > 0 and item.quality < 50
     item.quality += quality_score
+  end
+end
+
+def decrease_item_sell_in_date(item)
+  if item.name != SULFURAS
+    item.sell_in -= 1
   end
 end
 
 def sell_in_expired?(item)
   item.sell_in < 0
 end
+
 
