@@ -41,7 +41,7 @@ describe GildedRose do
   describe '#update_quality' do
     shared_examples 'item sell value' do |item_name|
       it 'lowers sell in value by 1 at the end of the day' do
-        item = Item.new(item_name, sell_in = 1, quality = 0)
+        item = Item.new(item_name, 1, 0)
         items = [item]
         gilded_rose = GildedRose.new(items)
         gilded_rose.update_quality
@@ -49,7 +49,7 @@ describe GildedRose do
       end
 
       it 'sell in value can be negative' do
-        item = Item.new(item_name, sell_in = 0, quality = 0)
+        item = Item.new(item_name, 0, 0)
         items = [item]
         gilded_rose = described_class.new(items)
         gilded_rose.update_quality
@@ -60,7 +60,7 @@ describe GildedRose do
   
     shared_examples 'quality value' do |item_name|
       it 'quality value is never negative' do
-        item = Item.new(item_name, sell_in = 0, quality = 0)
+        item = Item.new(item_name, 0, 0)
         items = [item]
         gilded_rose = described_class.new(items)
         gilded_rose.update_quality
@@ -68,11 +68,10 @@ describe GildedRose do
       end
 
       it 'quality value is never more than 50' do
-        item = Item.new(item_name, sell_in=10, quality=50)
+        item = Item.new(item_name, 10, 50)
         items = [item]
         gilded_rose = described_class.new(items)
         gilded_rose.update_quality
-
         expect(item.quality).to be <= 50
       end
     end
@@ -94,19 +93,6 @@ describe GildedRose do
 
           expect(item.quality).to eq 0
         end
-        it 'lowers quality value by N after N days' do
-          n = 10
-          item = Item.new('foo', sell_in=n, quality=n)
-          items = [item]
-          gilded_rose = described_class.new(items)
-
-          n.times do |i|
-            gilded_rose.update_quality
-            expect(item.quality).to eq (n - (i + 1))
-          end
-
-          expect(item.quality).to eq 0
-        end
     
     context 'when item is Sulfuras' do
       it 'does not change the sell in' do
@@ -121,12 +107,20 @@ describe GildedRose do
     context 'Sulfuras quality' do
       it_behaves_like 'quality value', item_name='Sulfuras, Hand of Ragnaros'
 
-      it 'does not change the quality' do
+      it 'should not change sell in' do
         item = Item.new('Sulfuras, Hand of Ragnaros', 0, 0)
         items = [item]
         gilded_rose = described_class.new(items)
         gilded_rose.update_quality
-        expect(item.quality).to eql 0
+        expect(item.sell_in).to eql 0
+      end
+
+      it 'does not change the quality' do
+        item = Item.new('Sulfuras, Hand of Ragnaros', 0, 80)
+        items = [item]
+        gilded_rose = described_class.new(items)
+        gilded_rose.update_quality
+        expect(item.quality).to eql 80
       end
     end
 
@@ -138,48 +132,38 @@ describe GildedRose do
       context 'when sell in date not passed yet' do
           context 'when sell in above 10 days' do
             it 'increases by 1 the older it gets' do
-              n = 5
-              quality = 1
-              item = Item.new('Backstage passes to a TAFKAL80ETC concert', 15, quality=quality)
+              item = Item.new('Backstage passes to a TAFKAL80ETC concert', 15, 1)
               items = [item]
               gilded_rose = described_class.new(items)
-
-              n.times do |i|
-                gilded_rose.update_quality
-                expect(item.quality).to eq (quality + i + 1)
-              end
-
-              expect(item.quality).to eq (quality + n)
+              update = 5
+              update.times { gilded_rose.update_quality }
+              expect(item.quality).to eq (1 + update)
             end
           end
-          it 'increases to 50 when sell_in above 10 and quality is 49' do
-            item = Item.new('Backstage passes to a TAFKAL80ETC concert', 15, 49)
-            items = [item]
-            gilded_rose = described_class.new(items)
-            gilded_rose.update_quality
-            expect(item.quality).to eq 50
-          end
-          it 'increases to 50 instead of 51 when sell_in at least 5 and quality is 49' do
-            item = Item.new('Backstage passes to a TAFKAL80ETC concert', 5, 49)
-            items = [item]
-            gilded_rose = described_class.new(items)
-            gilded_rose.update_quality
-            expect(item.quality).to eq 50
+            it 'increases to 50 when sell_in above 10 and quality is 49' do
+              item = Item.new('Backstage passes to a TAFKAL80ETC concert', 15, 49)
+              items = [item]
+              gilded_rose = described_class.new(items)
+              gilded_rose.update_quality
+              expect(item.quality).to eq 50
+            end
+
+            it 'increases to 50 instead of 51 when sell_in at least 5 and quality is 49' do
+              item = Item.new('Backstage passes to a TAFKAL80ETC concert', 5, 49)
+              items = [item]
+              gilded_rose = described_class.new(items)
+              gilded_rose.update_quality
+              expect(item.quality).to eq 50
           end
         end
         context 'when sell in 10 days or less and above 5 days' do
           it 'increases by 2 the older it gets' do
-            n = 5
-            quality = 1
-            item = Item.new('Backstage passes to a TAFKAL80ETC concert', 10, quality=quality)
+            item = Item.new('Backstage passes to a TAFKAL80ETC concert', 10, 10)
             items = [item]
             gilded_rose = described_class.new(items)
-            n.times do |i|
-              gilded_rose.update_quality
-              expect(item.quality).to eq (quality + 2 * (i + 1))
-            end
-
-            expect(item.quality).to eq (quality + (2 * n))
+            update = 5
+            update.times { gilded_rose.update_quality }
+            expect(item.quality).to eq (10 + (2 * update))
           end
 
           it 'increases to 50 instead of 52 when sell_in at least 1 and quality is 49' do
@@ -192,16 +176,12 @@ describe GildedRose do
           end
           context 'when sell in 5 days or less' do
             it 'increases by 3 the older it gets' do
-              n = 5
-              quality = 1
-              item = Item.new('Backstage passes to a TAFKAL80ETC concert', 5, quality=quality)
+              item = Item.new('Backstage passes to a TAFKAL80ETC concert', 5, 1)
               items = [item]
               gilded_rose = described_class.new(items)
-              n.times do |i|
-                gilded_rose.update_quality
-                expect(item.quality).to eq (quality + 3 * (i + 1))
-              end
-              expect(item.quality).to eq (quality + (3 * n))
+              update = 5
+              update.times { gilded_rose.update_quality }
+              expect(item.quality).to eq (1 + (3 * update))
             end
 
             it 'increases to 50 instead of 52 when sell_in at least 1 and quality is 49' do
@@ -226,42 +206,37 @@ describe GildedRose do
 
     context 'when item is Aged Brie' do
       it_behaves_like 'item sell value', item_name = 'Aged Brie'
+      
       context 'item quality' do
         context 'when sell in date not passed yet' do
           it 'increases by 1 the older it gets' do
-            n = 5
-            quality = 0
-            item = Item.new('Aged Brie', n, 0)
+            item = Item.new('Aged Brie', 2, 0)
             items = [item]
             gilded_rose = described_class.new(items)
-            n.times do |i|
-              gilded_rose.update_quality
-              expect(item.quality).to eq (i + 1)
-            end
-            expect(item.quality).to eq n
+            gilded_rose.update_quality
+            expect(item.quality).to eq 1
           end
         end
 
       context 'when sell in date has passed' do
         it 'increases twice as fast the older it gets' do
-          n = 5
+          update = 5
           item = Item.new('Aged Brie', 0, 0)
           items = [item]
           gilded_rose = described_class.new(items)
-          n.times do |i|
+          update.times do |i|
             gilded_rose.update_quality
             expect(item.quality).to eq (2 * (i + 1))
           end
-          expect(item.quality).to eq (2 * n)
+          expect(item.quality).to eq (2 * update)
         end
       end
 
         it 'is never more than 50' do
-          n = 2
-          item = Item.new('Aged Brie', n, 49)
+          item = Item.new('Aged Brie', 2, 49)
           items = [item]
           gilded_rose = described_class.new(items)
-          n.times do
+          2.times do
             gilded_rose.update_quality
           end
           expect(item.quality).to eq 50
@@ -277,7 +252,6 @@ describe GildedRose do
           items = [item]
           gilded_rose = described_class.new(items)
           gilded_rose.update_quality
-
           expect(item.quality).to eq 0
         end
       end
